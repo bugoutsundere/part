@@ -346,10 +346,7 @@
 <body>
 
 <!-- ================= 背景音乐 ================= -->
-<audio id="bgm" loop preload="auto">
-  <source src="bgm.mp3" type="audio/mpeg">
-</audio>
-
+<audio id="bgm" src="bgm.mp3" loop preload="auto" playsinline></audio>
 <!-- 抽象浮动背景 -->
 <div class="abstract-bg" id="abstractBg"></div>
 
@@ -416,19 +413,19 @@
   }
 
   /* ========== 2. 背景音乐 ========== */
-  var audio = document.getElementById('bgm');
-  var isPlaying = false;
+ var audio = document.getElementById('bgm');
 
-  function playMusic() {
-    if (isPlaying) return;
-    audio.play().then(function () {
-      isPlaying = true;
-      var tip = document.querySelector('.music-tip');
-      if (tip) tip.style.display = 'none';
-    }).catch(function (err) {
-      console.log('音乐播放失败：', err);
-    });
-  }
+// 音频加载失败时，页面上直接提示
+audio.addEventListener('error', function () {
+  document.getElementById('musicLabel').textContent = '⚠️ 音乐加载失败';
+  document.getElementById('musicIcon').textContent = '⚠️';
+  document.getElementById('musicTip').textContent = '请检查 bgm.mp3 是否为标准 MP3 格式';
+});
+
+// 音频可以播放时
+audio.addEventListener('canplay', function () {
+  document.getElementById('musicTip').textContent = '✅ 音乐已就绪，点击开启';
+});
 
   /* ========== 3. 点击撒花 ========== */
   function burstEmoji(x, y) {
@@ -448,13 +445,12 @@
   }
 
   document.addEventListener('click', function (e) {
-    playMusic();
     if (e.target.closest('.btn') || e.target.closest('.popup-close')) return;
     burstEmoji(e.clientX, e.clientY);
   });
 
   document.addEventListener('touchstart', function () {
-    playMusic();
+    
   }, { once: true });
 
   /* ========== 4. 弹窗逻辑 ========== */
@@ -479,7 +475,7 @@
     popupTitle.innerText = data.title;
     popupText.innerHTML = data.text;
     overlay.classList.add('show');
-    playMusic();
+    
 
     // 弹窗打开时，中间炸一波表情
     var cx = window.innerWidth / 2;
