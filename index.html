@@ -24,12 +24,11 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 40px 16px 90px;
+    padding: 40px 16px 100px;
     color: #fff;
     position: relative;
   }
 
-  /* ===== 抽象浮动背景 ===== */
   .abstract-bg {
     position: fixed;
     inset: 0;
@@ -53,7 +52,6 @@
     100% { transform: translateY(-20vh) rotate(360deg) scale(1.5); opacity: 0; }
   }
 
-  /* ===== 主卡片 ===== */
   .card {
     position: relative;
     z-index: 10;
@@ -77,7 +75,6 @@
     100% { transform: rotate(-1deg)   scale(.98);  border-color: #00ffff; }
   }
 
-  /* ===== 比心图片 ===== */
   .img-box {
     position: relative;
     width: 150px;
@@ -104,7 +101,6 @@
     100% { transform: rotate(360deg) scale(1); }
   }
 
-  /* ===== 标题 ===== */
   .title-1 {
     font-size: 22px;
     color: #ffcc00;
@@ -154,7 +150,6 @@
     text-shadow: 0 0 8px rgba(255,204,0,.6);
   }
 
-  /* ===== 时间地点 ===== */
   .info-box {
     margin-top: 14px;
     padding: 10px 12px;
@@ -177,7 +172,6 @@
     text-shadow: 0 0 8px #ffcc00;
   }
 
-  /* ===== 按钮区 ===== */
   .btn-group {
     display: flex;
     gap: 12px;
@@ -221,7 +215,6 @@
     50%      { box-shadow: 0 0 30px rgba(255,200,0,1),  inset 0 -3px 0 rgba(0,0,0,.25); }
   }
 
-  /* 按钮上的小闪光 */
   .btn::after {
     content: '';
     position: absolute;
@@ -237,7 +230,6 @@
     100% { left: 130%; }
   }
 
-  /* ===== 音乐提示 ===== */
   .music-tip {
     font-size: 12px;
     color: #888;
@@ -249,7 +241,6 @@
     50%      { opacity: 1; }
   }
 
-  /* ===== 弹窗 ===== */
   .overlay {
     position: fixed;
     inset: 0;
@@ -329,7 +320,6 @@
   }
   .popup-close:active { transform: scale(.92); }
 
-  /* ===== 点击撒花 ===== */
   .click-emoji {
     position: fixed;
     pointer-events: none;
@@ -345,17 +335,15 @@
 </head>
 <body>
 
-<!-- ================= 背景音乐 ================= -->
+<!-- ============ 背景音乐 ============ -->
 <audio id="bgm" src="bgm.mp3" loop preload="auto" playsinline></audio>
-<!-- 抽象浮动背景 -->
+
 <div class="abstract-bg" id="abstractBg"></div>
 
-<!-- 主卡片 -->
 <main class="card">
   <div class="title-1">💒 邀请函 💒</div>
   <div class="title-2">囍.Let's to eat chaihuoji.囍</div>
 
-  <!-- 比心表情包：src 改成你自己的图片名 -->
   <div class="img-box">
     <img src="bixin.png" alt="抽象比心"
          onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🫰</text></svg>';">
@@ -372,24 +360,19 @@
     <p>📍 地址：<span>金堂山柴火鸡旗舰店</span></p>
   </div>
 
-  <!-- 接受 / 同意 按钮 -->
   <div class="btn-group">
     <button class="btn btn-accept" type="button" data-type="accept">接受</button>
     <button class="btn btn-agree"  type="button" data-type="agree">同意</button>
   </div>
 
-  <div class="music-tip">👆 点击屏幕任意位置开启背景音乐</div>
+  <div class="music-tip" id="musicTip">👆 点击屏幕任意位置开启背景音乐</div>
 </main>
 
-<!-- ================= 弹窗 ================= -->
 <div class="overlay" id="overlay">
   <div class="popup">
     <div class="popup-title" id="popupTitle">🎉 收到！</div>
-
-    <!-- 弹窗图片：src 改成你自己的图片名 -->
     <img class="popup-img" id="popupImg" src="bixin.png" alt="确认图片"
          onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 200%22><rect width=%22300%22 height=%22200%22 fill=%22%23331122%22/><text x=%22150%22 y=%22115%22 font-size=%2260%22 text-anchor=%22middle%22>🫰</text></svg>';">
-
     <div class="popup-text" id="popupText">期待与你一起吃柴火鸡！</div>
     <button class="popup-close" type="button" id="popupClose">关闭</button>
   </div>
@@ -412,20 +395,47 @@
     bg.appendChild(el);
   }
 
-  /* ========== 2. 背景音乐 ========== */
- var audio = document.getElementById('bgm');
+  /* ========== 2. 背景音乐（核心修复） ========== */
+  var audio = document.getElementById('bgm');
+  var musicTip = document.getElementById('musicTip');
+  var isPlaying = false;
 
-// 音频加载失败时，页面上直接提示
-audio.addEventListener('error', function () {
-  document.getElementById('musicLabel').textContent = '⚠️ 音乐加载失败';
-  document.getElementById('musicIcon').textContent = '⚠️';
-  document.getElementById('musicTip').textContent = '请检查 bgm.mp3 是否为标准 MP3 格式';
-});
+  // 音频加载失败
+  audio.addEventListener('error', function () {
+    musicTip.textContent = '⚠️ 音乐加载失败，请检查 bgm.mp3 是否为标准 MP3 格式';
+    musicTip.style.color = '#ff6b6b';
+    console.error('音频加载失败：', audio.src);
+  });
 
-// 音频可以播放时
-audio.addEventListener('canplay', function () {
-  document.getElementById('musicTip').textContent = '✅ 音乐已就绪，点击开启';
-});
+  // 音频可以播放
+  audio.addEventListener('canplay', function () {
+    if (!isPlaying) {
+      musicTip.textContent = '✅ 音乐已就绪，点击屏幕开启';
+      musicTip.style.color = '#7dff7d';
+    }
+  });
+
+  // 真正调用 play() 的函数
+  function playMusic() {
+    if (isPlaying) return;
+    audio.volume = 1.0;
+    audio.muted = false;
+
+    var p = audio.play();
+    if (p && typeof p.then === 'function') {
+      p.then(function () {
+        isPlaying = true;
+        musicTip.style.display = 'none';
+      }).catch(function (err) {
+        console.warn('播放被拦截：', err);
+        musicTip.textContent = '⚠️ 播放被拦截，请再点一次屏幕';
+        musicTip.style.color = '#ffcc00';
+      });
+    } else {
+      isPlaying = true;
+      musicTip.style.display = 'none';
+    }
+  }
 
   /* ========== 3. 点击撒花 ========== */
   function burstEmoji(x, y) {
@@ -444,16 +454,19 @@ audio.addEventListener('canplay', function () {
     }
   }
 
+  /* ========== 4. 全局点击：播放音乐 + 撒花 ========== */
   document.addEventListener('click', function (e) {
+    playMusic();  // ★ 关键：每次点击都尝试播放
+
     if (e.target.closest('.btn') || e.target.closest('.popup-close')) return;
     burstEmoji(e.clientX, e.clientY);
   });
 
   document.addEventListener('touchstart', function () {
-    
+    playMusic();  // ★ 关键：移动端触摸也播放
   }, { once: true });
 
-  /* ========== 4. 弹窗逻辑 ========== */
+  /* ========== 5. 弹窗逻辑 ========== */
   var overlay     = document.getElementById('overlay');
   var popupTitle  = document.getElementById('popupTitle');
   var popupText   = document.getElementById('popupText');
@@ -475,9 +488,8 @@ audio.addEventListener('canplay', function () {
     popupTitle.innerText = data.title;
     popupText.innerHTML = data.text;
     overlay.classList.add('show');
-    
+    playMusic();  // ★ 弹窗打开也播放
 
-    // 弹窗打开时，中间炸一波表情
     var cx = window.innerWidth / 2;
     var cy = window.innerHeight / 2;
     burstEmoji(cx, cy);
